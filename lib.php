@@ -358,6 +358,8 @@ class repository_imagehub extends repository {
  */
 function repository_imagehub_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = []): ?bool {
     global $OUTPUT;
+    require_login();
+    require_capability('repository/imagehub:view', context_system::instance());
     $fullpath = "/1/repository_imagehub/images/" . implode('/', $args);
     $fs = get_file_storage();
     if ((!$file = $fs->get_file_by_hash(sha1($fullpath))) || $file->is_directory()) {
