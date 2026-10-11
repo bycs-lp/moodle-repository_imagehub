@@ -31,6 +31,5 @@ $tagareas = [
     [
         'itemtype' => 'repository_imagehub',
         'component' => 'repository_imagehub',
-        'collection' => 'repository_imagehub_standard_collection',
     ],
 ];

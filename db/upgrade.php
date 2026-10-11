@@ -50,5 +50,12 @@ function xmldb_repository_imagehub_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025021300, 'repository', 'imagehub');
     }
 
+    if ($oldversion < 2026041701) {
+        core_tag_area::reset_definitions_for_component('repository_imagehub');
+
+        // Imagehub savepoint reached.
+        upgrade_plugin_savepoint(true, 2026041701, 'repository', 'imagehub');
+    }
+
     return true;
 }

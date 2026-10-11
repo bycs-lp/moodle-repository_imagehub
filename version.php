@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 
 $plugin->component    = 'repository_imagehub';
 $plugin->release      = '0.1';
-$plugin->version      = 2025021300;
+$plugin->version      = 2026041701;
 $plugin->requires     = 2024042200;
 $plugin->supported    = [405, 502];
 $plugin->maturity     = MATURITY_ALPHA;
