@@ -62,31 +62,52 @@ final class manager_test extends \advanced_testcase {
         return $sourceid;
     }
 
-    #[\PHPUnit\Framework\Attributes\Group('baseline')]
     /**
-     * Non-image files from a zip archive must not be stored in the images area.
+     * Data provider for test_import_skips_non_image_files.
+     * @return array
+     */
+    public static function non_image_files_provider(): array {
+        return [
+            'html' => ['payload.html'],
+            'htm' => ['payload.htm'],
+            'xhtml' => ['payload.xhtml'],
+            'html in subdirectory' => ['sub/nested.html'],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('non_image_files_provider')]
+    /**
+     * Non-image files from a zip archive must not be stored in the images area, regardless of
+     * their extension or whether they sit in a subdirectory of the archive.
      *
      * @covers \repository_imagehub\manager::import_files_from_directory
+     * @param string $filename the archive entry to import
      */
-    public function test_import_skips_non_image_files(): void {
+    public function test_import_skips_non_image_files(string $filename): void {
         $this->resetAfterTest();
         $this->setAdminUser();
 
-        $sourceid = $this->import_zip(['payload.html' => '<script>alert(1)</script>']);
+        $sourceid = $this->import_zip([$filename => '<script>alert(1)</script>']);
+
+        $parts = explode('/', $filename);
+        $basename = array_pop($parts);
+        $filepath = '/';
+        if (!empty($parts)) {
+            $filepath = '/' . implode('/', $parts) . '/';
+        }
 
         $file = get_file_storage()->get_file(
             \context_system::instance()->id,
             'repository_imagehub',
             'images',
             $sourceid,
-            '/',
-            'payload.html'
+            $filepath,
+            $basename
         );
         $this->assertFalse($file);
-        $this->assertContains('/payload.html', manager::get_file_report()['files_error']);
+        $this->assertContains('/' . $filename, manager::get_file_report()['files_error']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Group('baseline')]
     /**
      * Image files from a zip archive are still imported.
      *
@@ -108,5 +129,35 @@ final class manager_test extends \advanced_testcase {
         );
         $this->assertNotFalse($file);
         $this->assertContains('/picture.png', manager::get_file_report()['files_imported']);
+    }
+
+    /**
+     * A metadata.json entry is exempt from the image-type restriction, so it is imported like
+     * any other file, but process_metadata() consumes it afterwards: it must not remain in the
+     * images area and must not be rejected as a type error.
+     *
+     * @covers \repository_imagehub\manager::import_files_from_zip
+     * @covers \repository_imagehub\manager::process_metadata
+     */
+    public function test_import_consumes_metadata_json(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $sourceid = $this->import_zip([
+            'picture.png' => 'png content',
+            'metadata.json' => json_encode(['images' => [['filename' => 'picture.png', 'author' => 'Jane Doe']]]),
+        ]);
+
+        $metadatafile = get_file_storage()->get_file(
+            \context_system::instance()->id,
+            'repository_imagehub',
+            'images',
+            $sourceid,
+            '/',
+            'metadata.json'
+        );
+        $this->assertFalse($metadatafile);
+        $this->assertContains('/metadata.json', manager::get_file_report()['files_imported']);
+        $this->assertNotContains('/metadata.json', manager::get_file_report()['files_error']);
     }
 }

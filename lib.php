@@ -366,6 +366,12 @@ function repository_imagehub_pluginfile($course, $cm, $context, $filearea, $args
         return false;
     }
 
+    if (!file_extension_in_typegroup($file->get_filename(), 'web_image', true)) {
+        // Files imported before the zip import restriction (MBS-11265) may still be non-image
+        // files. Block them here as well so they are not served inline from the site origin.
+        return false;
+    }
+
     if ($filearea === 'thumb' || $filearea === 'icon') {
         if (str_ends_with($fullpath, '.svg')) {
             // SVG files are not resized.

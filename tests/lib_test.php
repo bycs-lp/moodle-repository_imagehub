@@ -25,7 +25,6 @@ namespace repository_imagehub;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class lib_test extends \advanced_testcase {
-    #[\PHPUnit\Framework\Attributes\Group('baseline')]
     /**
      * Files of the hub are only served to users holding repository/imagehub:view.
      *
@@ -47,6 +46,31 @@ final class lib_test extends \advanced_testcase {
         }
 
         $this->setUser($this->getDataGenerator()->create_user());
+        $this->assertFalse(repository_imagehub_pluginfile(null, null, $context, 'images', $args, false));
+    }
+
+    /**
+     * Non-image files already stored in the images area (e.g. imported before MBS-11265) are not served.
+     *
+     * @covers ::repository_imagehub_pluginfile
+     */
+    public function test_pluginfile_refuses_non_image_files(): void {
+        global $CFG;
+        require_once($CFG->dirroot . '/repository/imagehub/lib.php');
+        $this->resetAfterTest();
+        $context = \context_system::instance();
+
+        get_file_storage()->create_file_from_string([
+            'contextid' => $context->id,
+            'component' => 'repository_imagehub',
+            'filearea' => 'images',
+            'itemid' => 1,
+            'filepath' => '/',
+            'filename' => 'payload.html',
+        ], '<script>alert(1)</script>');
+
+        $this->setUser($this->getDataGenerator()->create_user());
+        $args = [1, 'payload.html'];
         $this->assertFalse(repository_imagehub_pluginfile(null, null, $context, 'images', $args, false));
     }
 }
