@@ -75,12 +75,12 @@ final class manager_test extends \advanced_testcase {
         ];
     }
 
-    #[\PHPUnit\Framework\Attributes\DataProvider('non_image_files_provider')]
     /**
      * Non-image files from a zip archive must not be stored in the images area, regardless of
      * their extension or whether they sit in a subdirectory of the archive.
      *
      * @covers \repository_imagehub\manager::import_files_from_directory
+     * @dataProvider non_image_files_provider
      * @param string $filename the archive entry to import
      */
     public function test_import_skips_non_image_files(string $filename): void {
