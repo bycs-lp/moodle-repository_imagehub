@@ -246,6 +246,13 @@ class manager {
         );
 
         foreach ($files as $file) {
+            if (
+                $file->get_filename() !== 'metadata.json'
+                && !file_extension_in_typegroup($file->get_filename(), 'web_image', true)
+            ) {
+                self::$filereport['files_error'][] = $file->get_filepath() . $file->get_filename();
+                continue;
+            }
             try {
                 $targetfile = $fs->get_file(
                     \context_system::instance()->id,
