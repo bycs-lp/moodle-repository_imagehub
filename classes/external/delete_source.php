@@ -54,13 +54,15 @@ class delete_source extends external_api {
      * @throws dml_exception
      */
     public static function execute(int $id): array {
-        self::validate_parameters(self::execute_parameters(), [
+        $params = self::validate_parameters(self::execute_parameters(), [
             'id' => $id,
         ]);
 
-        require_capability('repository/imagehub:managerepositories', \context_system::instance());
+        $context = \context_system::instance();
+        self::validate_context($context);
+        require_capability('repository/imagehub:managerepositories', $context);
 
-        manager::delete_source($id);
+        manager::delete_source($params['id']);
 
         return ['result' => true];
     }
