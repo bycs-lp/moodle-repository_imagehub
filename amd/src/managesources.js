@@ -64,8 +64,12 @@ function showModal(e, id) {
 function deleteModal(e, id, title) {
     e.preventDefault();
 
+    // The modal renders its title as HTML, so the source title must be escaped.
+    const escaped = document.createElement('span');
+    escaped.textContent = title;
+
     deleteCancelPromise(
-        getString('delete', 'repository_imagehub', title),
+        getString('delete', 'repository_imagehub', escaped.innerHTML),
         getString('deletewarning', 'repository_imagehub'),
     ).then(async() => {
         if (id !== 0) {
